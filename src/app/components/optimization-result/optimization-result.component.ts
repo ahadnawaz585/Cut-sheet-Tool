@@ -24,20 +24,29 @@ import { OptimizedProfile } from '../../models/window.model';
         </div>
       </div>
 
-      <div *ngFor="let profile of profiles; let i = index" class="profile-container">
-        <h3>Profile {{i + 1}} ({{profile.originalLength}}{{profile.unit}})</h3>
-        <div class="profile-bar">
-          <div *ngFor="let cut of profile.cuts" 
-               class="cut-piece"
-               [style.width.%]="(cut.length / profile.originalLength) * 100"
-               [style.left.%]="calculatePosition(profile, cut)">
-            <div class="cut-label">{{cut.refNo}} - {{cut.length}}{{cut.unit}}</div>
-            <div class="cut-position">{{getPositionLabel(cut.position)}}</div>
+      <div class="profiles-container">
+        <div *ngFor="let profile of profiles; let i = index" class="profile-container">
+          <div class="profile-header">
+            <h3>Profile {{i + 1}}</h3>
+            <div class="profile-stats">
+              <span>Length: {{profile.originalLength}}{{profile.unit}}</span>
+              <span>Waste: {{profile.wasteLength}}{{profile.unit}}</span>
+              <span>Utilization: {{calculateUtilization(profile)}}%</span>
+            </div>
           </div>
-        </div>
-        <div class="profile-info">
-          <span>Utilization: {{calculateUtilization(profile)}}%</span>
-          <span>Waste: {{profile.wasteLength}}{{profile.unit}}</span>
+          
+          <div class="profile-bar">
+            <div *ngFor="let cut of profile.cuts" 
+                class="cut-piece"
+                [style.width.%]="(cut.length / profile.originalLength) * 100"
+                [style.left.%]="calculatePosition(profile, cut)">
+              <div class="cut-label">
+                {{cut.refNo}} - {{cut.length}}{{cut.unit}}
+                <span *ngIf="cut.propertyName" class="property-name">({{cut.propertyName}})</span>
+              </div>
+              <div class="cut-position">{{getPositionLabel(cut.position)}}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -45,10 +54,10 @@ import { OptimizedProfile } from '../../models/window.model';
   styles: [`
     .visualization {
       margin-top: 2rem;
-      padding: 2rem;
+      padding: 1.5rem;
       background-color: white;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .summary-stats {
       display: grid;
@@ -56,59 +65,100 @@ import { OptimizedProfile } from '../../models/window.model';
       gap: 1rem;
       margin-bottom: 2rem;
       padding: 1rem;
-      background-color: #f8f9fa;
-      border-radius: 4px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     }
     .stat-item {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
     .stat-label {
-      font-weight: bold;
-      color: #666;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 0.5rem;
     }
     .stat-value {
-      font-size: 1.2rem;
-      color: #333;
+      font-size: 1.25rem;
+      color: #212529;
+      font-weight: 500;
+    }
+    .profiles-container {
+      display: grid;
+      gap: 1.5rem;
     }
     .profile-container {
-      margin-bottom: 2rem;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .profile-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+      color: #6c757d;
     }
     .profile-bar {
       height: 60px;
-      background-color: #e9ecef;
+      background: linear-gradient(to right, #e9ecef 0%, #dee2e6 100%);
       margin: 1rem 0;
       position: relative;
       border-radius: 4px;
+      overflow: hidden;
     }
     .cut-piece {
       position: absolute;
       height: 100%;
-      background-color: #28a745;
-      border: 1px solid #1e7e34;
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border: 1px solid rgba(0,0,0,0.1);
       color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      transition: all 0.3s ease;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
     .cut-piece:hover {
-      background-color: #218838;
       transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     .cut-label {
-      font-weight: bold;
+      font-weight: 600;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      padding: 0 0.5rem;
     }
-    .cut-position {
-      font-size: 10px;
+    .property-name {
+      font-size: 0.8rem;
       opacity: 0.9;
     }
-    .profile-info {
-      display: flex;
-      justify-content: space-between;
-      color: #666;
+    .cut-position {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+    h2 {
+      color: #343a40;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+    h3 {
+      color: #495057;
+      margin: 0;
+      font-weight: 500;
     }
   `]
 })
@@ -121,7 +171,7 @@ export class OptimizationResultComponent {
       if (previousCut === cut) break;
       position += (previousCut.length / profile.originalLength) * 100;
     }
-    return position;
+    return Number(position.toFixed(2));
   }
 
   formatTotalLength(): string {
@@ -132,8 +182,8 @@ export class OptimizationResultComponent {
     const ftTotal = ftProfiles.reduce((total, profile) => total + profile.originalLength, 0);
 
     const parts = [];
-    if (mmTotal > 0) parts.push(`${mmTotal}mm`);
-    if (ftTotal > 0) parts.push(`${ftTotal}ft`);
+    if (mmTotal > 0) parts.push(`${mmTotal.toFixed(1)}mm`);
+    if (ftTotal > 0) parts.push(`${ftTotal.toFixed(2)}ft`);
     return parts.join(' + ') || '0';
   }
 
@@ -145,8 +195,8 @@ export class OptimizationResultComponent {
     const ftWaste = ftProfiles.reduce((total, profile) => total + profile.wasteLength, 0);
 
     const parts = [];
-    if (mmWaste > 0) parts.push(`${mmWaste}mm`);
-    if (ftWaste > 0) parts.push(`${ftWaste}ft`);
+    if (mmWaste > 0) parts.push(`${mmWaste.toFixed(1)}mm`);
+    if (ftWaste > 0) parts.push(`${ftWaste.toFixed(2)}ft`);
     return parts.join(' + ') || '0';
   }
 
@@ -161,11 +211,11 @@ export class OptimizationResultComponent {
       return total + waste;
     }, 0);
 
-    return totalLength > 0 ? Math.round((totalWaste / totalLength) * 100 * 10) / 10 : 0;
+    return Number(((totalWaste / totalLength) * 100).toFixed(1));
   }
 
   calculateUtilization(profile: OptimizedProfile): number {
-    return Math.round(((profile.originalLength - profile.wasteLength) / profile.originalLength) * 100 * 10) / 10;
+    return Number((((profile.originalLength - profile.wasteLength) / profile.originalLength) * 100).toFixed(1));
   }
 
   getPositionLabel(position: number): string {
@@ -174,6 +224,7 @@ export class OptimizationResultComponent {
       case 1: return 'Bottom';
       case 2: return 'Left';
       case 3: return 'Right';
+      case 4: return 'Additional';
       default: return '';
     }
   }

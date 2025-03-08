@@ -4,6 +4,14 @@ export interface WindowFrame {
   height: number;
   refNo: string;
   unit: 'mm' | 'ft';
+  properties: FrameProperty[];
+}
+
+export interface FrameProperty {
+  id: string;
+  name: string;
+  length: number;
+  quantity: number;
 }
 
 export interface ProfileLength {
@@ -18,6 +26,7 @@ export interface CutPiece {
   frameId: string;
   position: number;
   unit: 'mm' | 'ft';
+  propertyName?: string;
 }
 
 export interface OptimizedProfile {

@@ -89,7 +89,14 @@ export class App {
   };
 
   frames: WindowFrame[] = [
-    { id: '1', refNo: 'W1', width: 1000, height: 1200, unit: 'mm' }
+    {
+      id: '1',
+      refNo: 'W1',
+      width: 1000,
+      height: 1200,
+      unit: 'mm',
+      properties: []
+    }
   ];
 
   optimizedProfiles: OptimizedProfile[] = [];
