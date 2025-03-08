@@ -26,6 +26,11 @@ export class OptimizerService {
     let availableProfiles: OptimizedProfile[] = [];
     let remainingPieces = [...sortedPieces];
 
+    // Calculate blade size in mm
+    const bladeSize = standardProfile.includeBladeSize ? 
+      (standardProfile.unit === 'ft' ? standardProfile.bladeSize * this.MM_PER_FOOT : standardProfile.bladeSize) : 
+      0;
+
     // Keep adding profiles until all pieces are placed
     while (remainingPieces.length > 0) {
       const newProfile: OptimizedProfile = {
@@ -37,20 +42,23 @@ export class OptimizerService {
       availableProfiles.push(newProfile);
 
       // Try to fit as many pieces as possible in the current profile
-      remainingPieces = this.fillProfile(newProfile, remainingPieces);
+      remainingPieces = this.fillProfile(newProfile, remainingPieces, bladeSize);
     }
 
     // Convert results back to original units and round values
     return this.convertResultsToOriginalUnits(availableProfiles, standardProfile);
   }
 
-  private fillProfile(profile: OptimizedProfile, pieces: CutPiece[]): CutPiece[] {
+  private fillProfile(profile: OptimizedProfile, pieces: CutPiece[], bladeSize: number): CutPiece[] {
     const remaining: CutPiece[] = [];
     
     for (const piece of pieces) {
-      if (profile.wasteLength >= piece.length) {
+      // Add blade size to the required length for each cut except the last one in the profile
+      const requiredLength = profile.cuts.length > 0 ? piece.length + bladeSize : piece.length;
+      
+      if (profile.wasteLength >= requiredLength) {
         profile.cuts.push(piece);
-        profile.wasteLength = Number((profile.wasteLength - piece.length).toFixed(3));
+        profile.wasteLength = Number((profile.wasteLength - requiredLength).toFixed(3));
       } else {
         remaining.push(piece);
       }
@@ -62,11 +70,11 @@ export class OptimizerService {
   private normalizeFramesToMm(frames: WindowFrame[]): WindowFrame[] {
     return frames.map(frame => ({
       ...frame,
-      width: Number((frame.unit === 'ft' ? frame.width * this.MM_PER_FOOT : frame.width).toFixed(3)),
-      height: Number((frame.unit === 'ft' ? frame.height * this.MM_PER_FOOT : frame.height).toFixed(3)),
+      width: frame.unit === 'ft' ? frame.width * this.MM_PER_FOOT : frame.width,
+      height: frame.unit === 'ft' ? frame.height * this.MM_PER_FOOT : frame.height,
       properties: frame.properties.map(prop => ({
         ...prop,
-        length: Number((frame.unit === 'ft' ? prop.length * this.MM_PER_FOOT : prop.length).toFixed(3))
+        length: frame.unit === 'ft' ? prop.length * this.MM_PER_FOOT : prop.length
       })),
       unit: 'mm'
     }));
@@ -75,32 +83,22 @@ export class OptimizerService {
   private normalizeProfileToMm(profile: ProfileLength): ProfileLength {
     return {
       ...profile,
-      length: Number((profile.unit === 'ft' ? profile.length * this.MM_PER_FOOT : profile.length).toFixed(3)),
+      length: profile.unit === 'ft' ? profile.length * this.MM_PER_FOOT : profile.length,
       unit: 'mm'
     };
   }
 
   private convertResultsToOriginalUnits(results: OptimizedProfile[], originalProfile: ProfileLength): OptimizedProfile[] {
     return results.map(result => {
-      if (originalProfile.unit === 'mm') {
-        return {
-          ...result,
-          originalLength: Number(result.originalLength.toFixed(1)),
-          wasteLength: Number(result.wasteLength.toFixed(1)),
-          cuts: result.cuts.map(cut => ({
-            ...cut,
-            length: Number(cut.length.toFixed(1))
-          }))
-        };
-      }
+      if (originalProfile.unit === 'mm') return result;
 
       return {
         ...result,
-        originalLength: Number((result.originalLength / this.MM_PER_FOOT).toFixed(2)),
-        wasteLength: Number((result.wasteLength / this.MM_PER_FOOT).toFixed(2)),
+        originalLength: result.originalLength / this.MM_PER_FOOT,
+        wasteLength: result.wasteLength / this.MM_PER_FOOT,
         cuts: result.cuts.map(cut => ({
           ...cut,
-          length: Number((cut.length / this.MM_PER_FOOT).toFixed(2)),
+          length: cut.length / this.MM_PER_FOOT,
           unit: 'ft'
         })),
         unit: 'ft'
@@ -170,7 +168,7 @@ export class OptimizerService {
             length: prop.length,
             refNo: frame.refNo,
             frameId: frame.id,
-            position: 4,
+            position: 4, // Additional property
             unit: frame.unit,
             propertyName: prop.name
           });

@@ -18,6 +18,8 @@ export interface ProfileLength {
   id: string;
   length: number;
   unit: 'mm' | 'ft';
+  bladeSize: number;
+  includeBladeSize: boolean;
 }
 
 export interface CutPiece {

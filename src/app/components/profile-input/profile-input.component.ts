@@ -29,6 +29,38 @@ import { ProfileLength } from '../../models/window.model';
             </select>
           </div>
         </div>
+
+        <div class="blade-size-section">
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="profile.includeBladeSize"
+                (ngModelChange)="onChange()">
+              Include blade size in calculations
+            </label>
+          </div>
+          
+          <div class="input-group" *ngIf="profile.includeBladeSize">
+            <label>Blade Size</label>
+            <div class="input-with-unit">
+              <input 
+                type="number" 
+                [(ngModel)]="profile.bladeSize" 
+                placeholder="Blade Size" 
+                class="form-control"
+                (ngModelChange)="onChange()">
+              <select 
+                [(ngModel)]="profile.unit" 
+                class="form-control unit-select"
+                (ngModelChange)="onChange()" 
+                disabled>
+                <option value="mm">mm</option>
+                <option value="ft">ft</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -42,6 +74,7 @@ import { ProfileLength } from '../../models/window.model';
     .input-group {
       display: flex;
       flex-direction: column;
+      margin-bottom: 1rem;
     }
     .input-group label {
       margin-bottom: 0.5rem;
@@ -55,13 +88,33 @@ import { ProfileLength } from '../../models/window.model';
     .unit-select {
       width: 80px;
     }
+    .blade-size-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+    }
+    .checkbox-group {
+      margin-bottom: 1rem;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+    }
   `]
 })
 export class ProfileInputComponent {
   @Input() profile: ProfileLength = {
     id: '1',
     length: 6000,
-    unit: 'mm'
+    unit: 'mm',
+    bladeSize: 3,
+    includeBladeSize: false
   };
   @Output() profileChange = new EventEmitter<ProfileLength>();
 

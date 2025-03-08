@@ -84,6 +84,8 @@ import { OptimizationResultComponent } from './app/components/optimization-resul
 export class App {
   standardProfile: ProfileLength = {
     id: '1',
+    includeBladeSize:false,
+    bladeSize:0,
     length: 6000,
     unit: 'mm'
   };
